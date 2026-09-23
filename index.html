@@ -14,7 +14,6 @@
     
     <style>
         body {
-            /* พื้นหลังไล่สีโทนพาสเทล */
             background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
             background-attachment: fixed;
             font-family: 'Krub', sans-serif;
@@ -23,18 +22,18 @@
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden; /* ซ่อน scrollbar นอกกล่อง */
+            overflow: hidden;
             position: relative;
         }
 
-        /* เอฟเฟกต์หิมะ/สัญลักษณ์ร่วงหล่น */
+        /* Snow Effect */
         .snow-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* ทำให้คลิกทะลุได้ */
+            pointer-events: none;
             z-index: 0;
         }
 
@@ -59,15 +58,12 @@
             50% { transform: translateX(20px); }
         }
 
-
         .container {
-            /* เอฟเฟกต์ Liquid Glass */
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-            
             padding: 30px;
             border-radius: 20px;
             width: 100%;
@@ -75,10 +71,9 @@
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
-            z-index: 1; /* ให้อยู่เหนือหิมะ */
+            z-index: 1; 
         }
 
-        /* ปรับแต่ง Scrollbar ของคอนเทนเนอร์ให้เข้ากับธีม */
         .container::-webkit-scrollbar {
             width: 8px;
         }
@@ -93,7 +88,7 @@
 
         h2 {
             text-align: center;
-            color: #5b7396; /* ปรับสีหัวข้อให้เข้ากับพื้นหลังใหม่ */
+            color: #5b7396; 
             letter-spacing: 1px;
             margin-top: 0;
             font-weight: 700;
@@ -102,13 +97,15 @@
         label {
             display: block; font-size: 13px; color: #4a5c75; font-weight: 600; margin-bottom: 4px;
         }
-        input[type="month"] {
+        
+        /* เปลี่ยน input ให้รองรับ type="date" แบบเต็ม */
+        input[type="date"] {
             width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.6);
             background-color: rgba(255,255,255,0.7); color: #444; box-sizing: border-box;
             font-family: 'Krub', sans-serif; font-weight: 600; font-size: 14px; height: 32px;
             transition: all 0.3s ease;
         }
-        input[type="month"]:focus {
+        input[type="date"]:focus {
             outline: none;
             background-color: rgba(255,255,255,0.9);
             box-shadow: 0 0 5px rgba(255,255,255,0.8);
@@ -140,7 +137,6 @@
         }
         .result-desc { font-size: 12px; color: #697d96; font-weight: 600; }
 
-        /* ปรับ Select2 ให้โปร่งแสงนิดๆ เข้ากับธีม */
         .select2-container--default .select2-selection--single {
             border: 1px solid rgba(255,255,255,0.6);
             border-radius: 8px;
@@ -180,11 +176,10 @@
 </head>
 <body>
 
-<!-- พื้นที่สำหรับสัญลักษณ์ร่วงหล่น -->
 <div class="snow-container" id="snow-container"></div>
 
 <div class="container">
-    <h2><i class="fas fa-plane-departure"></i> KYA Inc. ID Gen</h2>
+    <h2><i class="fas fa-plane-departure"></i> Nook Inc. ID Gen</h2>
     
     <div class="form-group">
         <label>Setting</label>
@@ -269,9 +264,10 @@
         </select>
     </div>
 
+    <!-- เปลี่ยนตรงนี้เป็นวันเกิดแบบเต็ม -->
     <div class="form-group">
-        <label>Issued Date</label>
-        <input type="month" id="genDate" value="2026-09">
+        <label>Date of Birth (DOB)</label>
+        <input type="date" id="genDate" value="2000-01-01">
     </div>
 
     <button onclick="generateCode()"><i class="fas fa-magic"></i> Generate Passport ID</button>
@@ -288,39 +284,26 @@
             minimumResultsForSearch: 0
         });
         
-        // สร้างเอฟเฟกต์หิมะเมื่อโหลดเสร็จ
         createSnowflakes();
     });
 
-    // ฟังก์ชันสร้างหิมะสัญลักษณ์
     function createSnowflakes() {
         const container = document.getElementById('snow-container');
-        const symbols = ['♡', '⊹', '⟡', '★', '♬', '𝄞']; // สัญลักษณ์ที่คุณต้องการ
-        const numFlakes = 30; // จำนวนที่ตกลงมาพร้อมกัน
+        const symbols = ['♡', '⊹', '⟡', '★', '♬', '𝄞']; 
+        const numFlakes = 30; 
 
         for (let i = 0; i < numFlakes; i++) {
             let flake = document.createElement('div');
             flake.className = 'snowflake';
-            
-            // สุ่มสัญลักษณ์
             let symbol = symbols[Math.floor(Math.random() * symbols.length)];
             flake.innerHTML = symbol;
-            
-            // สุ่มตำแหน่งเริ่มต้น (แกนนอน)
             flake.style.left = Math.random() * 100 + 'vw';
             
-            // สุ่มระยะเวลาตก (ความเร็วไม่เท่ากัน)
-            let fallDuration = Math.random() * 5 + 5; // 5 ถึง 10 วินาที
+            let fallDuration = Math.random() * 5 + 5; 
             flake.style.animationDuration = fallDuration + 's, ' + (fallDuration/2) + 's';
-            
-            // สุ่มหน่วงเวลา (ไม่ให้ตกลงมาพร้อมกันหมด)
             flake.style.animationDelay = Math.random() * 5 + 's, ' + Math.random() * 5 + 's';
-            
-            // สุ่มขนาด
-            flake.style.fontSize = (Math.random() * 1 + 0.5) + 'rem'; // 0.5rem ถึง 1.5rem
-            
-            // สุ่มความโปร่งใส
-            flake.style.opacity = Math.random() * 0.5 + 0.3; // 0.3 ถึง 0.8
+            flake.style.fontSize = (Math.random() * 1 + 0.5) + 'rem'; 
+            flake.style.opacity = Math.random() * 0.5 + 0.3; 
 
             container.appendChild(flake);
         }
@@ -335,12 +318,13 @@
         
         const block1 = gender + species + setting;
         
+        // ดึงแค่ตัวเลข เดือน และ วัน (MMDD) มาสร้างเป็นรหัส 4 หลัก
         let block2 = "0000";
         if (dateInput) {
-            const parts = dateInput.split('-');
-            const year = parts[0].substring(2, 4);
+            const parts = dateInput.split('-'); // จะได้ [YYYY, MM, DD]
             const month = parts[1];
-            block2 = year + month;
+            const day = parts[2];
+            block2 = month + day; // เช่น เกิดวันที่ 15 เดือน 09 รหัสจะเป็น 0915
         }
 
         const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
