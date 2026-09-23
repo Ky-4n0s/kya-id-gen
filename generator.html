@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adoptable Passport Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <style>
+        body {
+            /* พื้นหลังไล่สีโทนพาสเทล */
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            background-attachment: fixed;
+            font-family: 'Krub', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* ซ่อน scrollbar นอกกล่อง */
+            position: relative;
+        }
+
+        /* เอฟเฟกต์หิมะ/สัญลักษณ์ร่วงหล่น */
+        .snow-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* ทำให้คลิกทะลุได้ */
+            z-index: 0;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10%;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            user-select: none;
+            animation-name: fall, sway;
+            animation-iteration-count: infinite;
+            animation-timing-function: linear, ease-in-out;
+        }
+
+        @keyframes fall {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+
+
+        .container {
+            /* เอฟเฟกต์ Liquid Glass */
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1; /* ให้อยู่เหนือหิมะ */
+        }
+
+        /* ปรับแต่ง Scrollbar ของคอนเทนเนอร์ให้เข้ากับธีม */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #5b7396; /* ปรับสีหัวข้อให้เข้ากับพื้นหลังใหม่ */
+            letter-spacing: 1px;
+            margin-top: 0;
+            font-weight: 700;
+        }
+        .form-group { margin-bottom: 15px; }
+        label {
+            display: block; font-size: 13px; color: #4a5c75; font-weight: 600; margin-bottom: 4px;
+        }
+        input[type="month"] {
+            width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.6);
+            background-color: rgba(255,255,255,0.7); color: #444; box-sizing: border-box;
+            font-family: 'Krub', sans-serif; font-weight: 600; font-size: 14px; height: 32px;
+            transition: all 0.3s ease;
+        }
+        input[type="month"]:focus {
+            outline: none;
+            background-color: rgba(255,255,255,0.9);
+            box-shadow: 0 0 5px rgba(255,255,255,0.8);
+        }
+
+        button {
+            width: 100%; padding: 12px; margin-top: 15px; background-color: #8fa8cc;
+            color: white; border: none; border-radius: 10px; font-weight: 700;
+            font-size: 16px; cursor: pointer; transition: 0.3s; font-family: 'Krub', sans-serif;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover { 
+            background-color: #7995bc; 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+
+        .result-box {
+            margin-top: 20px; 
+            background: rgba(255, 255, 255, 0.6); 
+            padding: 15px;
+            border-radius: 12px; 
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .result-code {
+            font-size: 20px; font-weight: 700; color: #4a5c75;
+            letter-spacing: 1px; margin-bottom: 5px; word-break: break-all;
+        }
+        .result-desc { font-size: 12px; color: #697d96; font-weight: 600; }
+
+        /* ปรับ Select2 ให้โปร่งแสงนิดๆ เข้ากับธีม */
+        .select2-container--default .select2-selection--single {
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 8px;
+            height: 32px;
+            background-color: rgba(255,255,255,0.7);
+            transition: all 0.3s ease;
+        }
+        .select2-container--default.select2-container--open .select2-selection--single {
+            background-color: rgba(255,255,255,0.9);
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #444;
+            line-height: 30px;
+            font-weight: 600;
+            font-family: 'Krub', sans-serif;
+            font-size: 14px;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 30px;
+        }
+        .select2-container--default .select2-results__option {
+            font-family: 'Krub', sans-serif;
+            font-size: 14px;
+        }
+        .select2-container--default .select2-results__group {
+            font-weight: 700;
+            color: #5b7396;
+            background-color: #edf2f7;
+            padding: 5px 10px;
+        }
+        .select2-dropdown {
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- พื้นที่สำหรับสัญลักษณ์ร่วงหล่น -->
+<div class="snow-container" id="snow-container"></div>
+
+<div class="container">
+    <h2><i class="fas fa-plane-departure"></i> KYA Inc. ID Gen</h2>
+    
+    <div class="form-group">
+        <label>Setting</label>
+        <select id="genSetting" class="searchable-select">
+            <option value="NM">Numinar (NM)</option>
+            <option value="M">Modern (M)</option>
+            <option value="F">Fantasy (F)</option>
+            <option value="S">Sci-Fi (S)</option>
+            <option value="O">Omegaverse (O)</option>
+            <option value="N">Normal (N)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Country / Region</label>
+        <select id="genCity" class="searchable-select">
+            <optgroup label="Setting: Numinar">
+                <option value="VT">Verithesium (VT)</option>
+                <option value="PR">Primordia (PR)</option>
+                <option value="AD">Adeptalon (AD)</option>
+                <option value="TC">Thalassocene (TC)</option>
+                <option value="NK">Nihil-Katar (NK)</option>
+                <option value="LC">Umbralis - Lacrimor (LC)</option>
+                <option value="IS">Umbralis - Insatia (IS)</option>
+                <option value="FU">Umbralis - Furian (FU)</option>
+                <option value="SM">Umbralis - Somnium (SM)</option>
+                <option value="EM">Empyrium (EM)</option>
+            </optgroup>
+
+            <optgroup label="General Worlds">
+                <option value="TH">Thailand (TH)</option>
+                <option value="JP">Japan (JP)</option>
+                <option value="UK">United Kingdom (UK)</option>
+                <option value="US">United States (US)</option>
+                <option value="KR">South Korea (KR)</option>
+                <option value="CN">China (CN)</option>
+            </optgroup>
+            
+            <option value="XX">Unspecified / Other (XX)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Gender</label>
+        <select id="genGender" class="searchable-select">
+            <option value="F">Female (F)</option>
+            <option value="M">Male (M)</option>
+            <option value="N">Non-binary / Other (N)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Species</label>
+        <select id="genSpecies" class="searchable-select">
+            <optgroup label="Setting: Numinar">
+                <option value="PM">Numinari - Primordis (PM)</option>
+                <option value="EC">Numinari - Electari (EC)</option>
+                <option value="AP">Numinari - The Apotheori (AP)</option>
+                <option value="NL">Numinari - Nihilari (NL)</option>
+                <option value="VR">Numinari - Veritasi (VR)</option>
+                <option value="VL">The Vaelur (Elf) (VL)</option>
+                <option value="TL">The Thalassari (Mermaid) (TL)</option>
+                <option value="CL">The Caelestari (Angel) (CL)</option>
+                <option value="UM">The Umbrari (Demon) (UM)</option>
+                <option value="AT">The Aethlings (Fairy) (AT)</option>
+                <option value="VS">The Vestigi (Spirit) (VS)</option>
+            </optgroup>
+
+            <optgroup label="General Species">
+                <option value="HM">Human (HM)</option>
+                <option value="KM">Kemonomimi (KM)</option>
+                <option value="FR">Furry / Anthro (FR)</option>
+                <option value="WI">Witch / Wizard (WI)</option>
+                <option value="EL">Elf (EL)</option>
+                <option value="AN">Angel (AN)</option>
+                <option value="DE">Demon (DE)</option>
+                <option value="ME">Mermaid (ME)</option>
+                <option value="MO">Monster (MO)</option>
+            </optgroup>
+            
+            <option value="XX">Other (XX)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Issued Date</label>
+        <input type="month" id="genDate" value="2026-09">
+    </div>
+
+    <button onclick="generateCode()"><i class="fas fa-magic"></i> Generate Passport ID</button>
+
+    <div class="result-box">
+        <div class="result-code" id="displayCode">AD-CC-XXXX-XXXX-XXXX</div>
+        <div class="result-desc">Copy this code to your Toyhouse profile!</div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {$('.searchable-select').select2({
+            width: '100%',
+            minimumResultsForSearch: 0
+        });
+        
+        // สร้างเอฟเฟกต์หิมะเมื่อโหลดเสร็จ
+        createSnowflakes();
+    });
+
+    // ฟังก์ชันสร้างหิมะสัญลักษณ์
+    function createSnowflakes() {
+        const container = document.getElementById('snow-container');
+        const symbols = ['♡', '⊹', '⟡', '★', '♬', '𝄞']; // สัญลักษณ์ที่คุณต้องการ
+        const numFlakes = 30; // จำนวนที่ตกลงมาพร้อมกัน
+
+        for (let i = 0; i < numFlakes; i++) {
+            let flake = document.createElement('div');
+            flake.className = 'snowflake';
+            
+            // สุ่มสัญลักษณ์
+            let symbol = symbols[Math.floor(Math.random() * symbols.length)];
+            flake.innerHTML = symbol;
+            
+            // สุ่มตำแหน่งเริ่มต้น (แกนนอน)
+            flake.style.left = Math.random() * 100 + 'vw';
+            
+            // สุ่มระยะเวลาตก (ความเร็วไม่เท่ากัน)
+            let fallDuration = Math.random() * 5 + 5; // 5 ถึง 10 วินาที
+            flake.style.animationDuration = fallDuration + 's, ' + (fallDuration/2) + 's';
+            
+            // สุ่มหน่วงเวลา (ไม่ให้ตกลงมาพร้อมกันหมด)
+            flake.style.animationDelay = Math.random() * 5 + 's, ' + Math.random() * 5 + 's';
+            
+            // สุ่มขนาด
+            flake.style.fontSize = (Math.random() * 1 + 0.5) + 'rem'; // 0.5rem ถึง 1.5rem
+            
+            // สุ่มความโปร่งใส
+            flake.style.opacity = Math.random() * 0.5 + 0.3; // 0.3 ถึง 0.8
+
+            container.appendChild(flake);
+        }
+    }
+
+    function generateCode() {
+        const city = $('#genCity').val();
+        const setting = $('#genSetting').val();
+        const gender = $('#genGender').val();
+        const species = $('#genSpecies').val();
+        const dateInput = document.getElementById('genDate').value;
+        
+        const block1 = gender + species + setting;
+        
+        let block2 = "0000";
+        if (dateInput) {
+            const parts = dateInput.split('-');
+            const year = parts[0].substring(2, 4);
+            const month = parts[1];
+            block2 = year + month;
+        }
+
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let block3 = "";
+        for (let i = 0; i < 4; i++) {
+            block3 += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+
+        const finalCode = `AD-${city}-${block1}-${block2}-${block3}`;
+        
+        document.getElementById('displayCode').innerText = finalCode;
+    }
+</script>
+
+</body>
+</html>
